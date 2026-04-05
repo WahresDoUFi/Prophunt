@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/OutdoorsScene.unity
     guid: 8124e5870f4fd4c779e7a5f994e84ad1
+  - enabled: 1
+    path: Assets/Skyscraper_Construction_Yard_URP/Scenes/SceneDemoURP.unity
+    guid: 7c48e1d9d0bd80d42896ea75344bf17d
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 7bb3eaed612b1f2458c73c7f7b428b29, type: 3}
   m_UseUCBPForAssetBundles: 0
