@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5821c1a27e4c7d94390eabcb0d2dddbd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 184619
+  packageName: Skyscraper Construction Yard
+  packageVersion: 2.0
+  assetPath: Assets/Skyscraper_Construction_Yard_URP/Materials/Decals/Footsteps.mat
+  uploadId: 706166

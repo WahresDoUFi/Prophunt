@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 65d1001109c78164a9e1f28ab7d5b174
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 184619
+  packageName: Skyscraper Construction Yard
+  packageVersion: 2.0
+  assetPath: Assets/Skyscraper_Construction_Yard_URP/Settings/New Universal Render
+    Pipeline Asset_Renderer.asset
+  uploadId: 706166

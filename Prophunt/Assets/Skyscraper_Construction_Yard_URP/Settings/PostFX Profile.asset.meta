@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 86f790e11670aa04ba8bc92ef075ec04
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 184619
+  packageName: Skyscraper Construction Yard
+  packageVersion: 2.0
+  assetPath: Assets/Skyscraper_Construction_Yard_URP/Settings/PostFX Profile.asset
+  uploadId: 706166

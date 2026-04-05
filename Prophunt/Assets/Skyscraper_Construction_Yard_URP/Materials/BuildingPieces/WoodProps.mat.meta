@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a89c5bc646b6f7341803c00504bd688f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 184619
+  packageName: Skyscraper Construction Yard
+  packageVersion: 2.0
+  assetPath: Assets/Skyscraper_Construction_Yard_URP/Materials/BuildingPieces/WoodProps.mat
+  uploadId: 706166
