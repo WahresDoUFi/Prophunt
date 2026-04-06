@@ -41,4 +41,19 @@ public class InputManager : MonoBehaviour
     {
         return instance._playerControls.Player.Jump.triggered;
     }
+
+    public static bool AttackTriggered()
+    {
+        return instance._playerControls.Player.Attack.ReadValue<float>() > 0;
+    }
+
+    public static bool ReloadTriggered()
+    {
+        return instance._playerControls.Player.Reload.triggered;
+    }
+
+    public static bool AbilityTriggered()
+    {
+        return instance._playerControls.Player.Ability.triggered;
+    }
 }

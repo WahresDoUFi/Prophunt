@@ -1,10 +1,16 @@
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
 public class HunterController : NetworkBehaviour
 {
+    private static HunterController instance;
+
+    [Header("References")]
     [SerializeField]
     private Character.CharacterController characterController;
+    [SerializeField] private FirearmWeapon weaponController;
+    [SerializeField] private CinemachineCamera firstPersonCamera;
 
     private void OnEnable()
     {
@@ -14,6 +20,7 @@ public class HunterController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        instance = this;
         characterController.SetVisible(!IsOwner);
     }
 
@@ -26,6 +33,11 @@ public class HunterController : NetworkBehaviour
                     InputManager.IsSneaking());
             if (InputManager.JumpTriggered())
                 characterController.Jump();
+
+            if (InputManager.AttackTriggered())
+                weaponController.Fire(characterController.HeadPosition, characterController.ForwardDirection);
+            if (InputManager.ReloadTriggered())
+                weaponController.Reload();
         }
     }
 }

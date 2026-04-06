@@ -1,10 +1,11 @@
 using System.ComponentModel.Design.Serialization;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Character
 {
-    public class CharacterController : MonoBehaviour
+    public class CharacterController : NetworkBehaviour
     {
         [Header("References")]
         [SerializeField] private Animator _animator;
@@ -18,13 +19,16 @@ namespace Character
         [SerializeField] private float animationLerp;
         [SerializeField] private float jumpForce;
 
+        public Vector3 HeadPosition => cameraAnchor.position;
+        public Vector3 ForwardDirection => cameraAnchor.forward;
         public bool OnGround { get; private set; }
 
         private Renderer[] _modelRenderer;
 
         //  scaled between -1; 1
         private float xSpeed, zSpeed;
-        private float _rotX, _rotY;
+        private readonly NetworkVariable<float> _rotX = new(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        private readonly NetworkVariable<float> _rotY = new(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         private Vector2 _movementCommand;
         private Vector2 _rotateCommand;
@@ -70,6 +74,8 @@ namespace Character
 
         private void UpdateAnimatorValues()
         {
+            if (!IsOwner) return;
+
             _animator.SetFloat("X", xSpeed);
             _animator.SetFloat("Z", zSpeed);
             _animator.SetBool("Sneak", _sneaking);
@@ -77,6 +83,8 @@ namespace Character
 
         private void ProcessInput()
         {
+            if (!IsOwner) return;
+
             _moveDir = transform.forward * _movementCommand.y;
             _moveDir += transform.right * _movementCommand.x;
             _moveDir.Normalize();
@@ -89,12 +97,14 @@ namespace Character
                 _gravity = jumpForce;
             _moveDir.y = _gravity;
 
-            _rotX = (_rotX + _rotateCommand.x) % 360;
-            _rotY = Mathf.Clamp(_rotY - _rotateCommand.y, -90f, 90f);
+            _rotX.Value = (_rotX.Value + _rotateCommand.x) % 360;
+            _rotY.Value = Mathf.Clamp(_rotY.Value - _rotateCommand.y, -90f, 90f);
         }
 
         private void UpdatePosition()
         {
+            if (!IsOwner) return;
+
             var previousPosition = transform.position;
 
             var collisionFlags = _characterController.Move(_moveDir * Time.deltaTime); // hit ground
@@ -117,8 +127,8 @@ namespace Character
 
         private void UpdateRotation()
         {
-            transform.root.localRotation = Quaternion.Euler(0f, _rotX, 0f);
-            cameraAnchor.localRotation = Quaternion.Euler(_rotY, 0f, 0f);
+            transform.root.localRotation = Quaternion.Euler(0f, _rotX.Value, 0f);
+            cameraAnchor.localRotation = Quaternion.Euler(_rotY.Value, 0f, 0f);
         }
     }
 }
