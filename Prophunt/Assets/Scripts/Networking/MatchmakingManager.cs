@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
+using UI;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
@@ -69,7 +70,7 @@ namespace Networking
                 SetButtonsEnabled(true);
                 return;
             }
-            Debug.Log("Join code is: " + code);
+            GameManagerUI.JoinCode = code;
         }
 
         private void HostButtonClicked()
@@ -111,6 +112,7 @@ namespace Networking
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
             }
             var allocation = await RelayService.Instance.CreateAllocationAsync((int)maxPlayersSlider.value);
+            GameManagerUI.MaxPlayers = (int)maxPlayersSlider.value;
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
             var joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             return NetworkManager.Singleton.StartHost() ? joinCode : null;
@@ -126,6 +128,7 @@ namespace Networking
             }
             var allocation = await RelayService.Instance.JoinAllocationAsync(joinCode: joinCode);
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
+            GameManagerUI.JoinCode = joinCode;
             return !string.IsNullOrEmpty(joinCode) && NetworkManager.Singleton.StartClient();
         }
 

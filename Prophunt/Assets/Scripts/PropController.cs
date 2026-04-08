@@ -34,7 +34,7 @@ public class PropController : NetworkBehaviour, IDamageable
     private float xRot, yRot;
 
     private readonly NetworkVariable<Vector3> _position = new(writePerm: NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<Quaternion> _rotation = new(writePerm: NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<Quaternion> _rotation = new(Quaternion.identity, writePerm: NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<int> _propIndex = new(-1);
     private readonly NetworkVariable<byte> _maxRerolls = new();
     private readonly NetworkVariable<float> _health = new(writePerm: NetworkVariableWritePermission.Owner);

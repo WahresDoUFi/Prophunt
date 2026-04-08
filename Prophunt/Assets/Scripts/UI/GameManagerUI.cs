@@ -8,10 +8,14 @@ namespace UI
 {     
     public class GameManagerUI : MonoBehaviour
     {
+        public static string JoinCode;
+        public static int MaxPlayers;
+
         private const string SearchTimeDescription = "Search Time: {0}";
         private const string HideTimeDescription = "Hide Time: {0}";
         private const string TauntFrequencyDescription = "Taunt Frequency: {0}";
         private const string MaxRerollDescription = "Max Rerolls: {0}";
+        private const string PlayerCountDescription = "Players: {0}/{1}";
 
         private const int searchTimeMultiplier = 15;
         private const int hideTimeMultiplier = 5;
@@ -28,6 +32,8 @@ namespace UI
         [SerializeField] private TextMeshProUGUI tauntFrequencyText;
         [SerializeField] private Slider maxRerollsSlider;
         [SerializeField] private TextMeshProUGUI maxRerollsText;
+        [SerializeField] private TextMeshProUGUI joinCodeText;
+        [SerializeField] private TextMeshProUGUI playerCountText;
         [SerializeField] private Button startGameButton;
         [SerializeField] private Button leaveGameButton;
         [SerializeField] private GameObject hunterWinScreen;
@@ -57,6 +63,10 @@ namespace UI
             settingsUI.SetActive(NetworkManager.Singleton.IsHost);
             hunterWinScreen.SetActive(GameManager.Instance.WinningTeam == GameManager.Team.Hunter);
             propsWinScreen.SetActive(GameManager.Instance.WinningTeam == GameManager.Team.Props);
+            joinCodeText.text = JoinCode;
+            playerCountText.text = NetworkManager.Singleton.IsHost ? 
+                string.Format(PlayerCountDescription, NetworkManager.Singleton.ConnectedClientsIds.Count, MaxPlayers) :
+                string.Empty;
         }
 
         private void SetupBindings()
