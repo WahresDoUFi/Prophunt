@@ -1,4 +1,5 @@
 using System.ComponentModel.Design.Serialization;
+using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,6 +20,11 @@ namespace Character
         [SerializeField] private float animationLerp;
         [SerializeField] private float jumpForce;
 
+        [Header("Footsteps")]
+        [SerializeField] private AudioSource footstepAudio;
+        [SerializeField] private AudioClip[] footstepSounds;
+        [SerializeField] private float footstepFrequency;
+
         public Vector3 HeadPosition => cameraAnchor.position;
         public Vector3 ForwardDirection => cameraAnchor.forward;
         public bool OnGround { get; private set; }
@@ -36,6 +42,7 @@ namespace Character
         private Vector3 _moveDir;
         private float _gravity;
         private bool _jump;
+        private float _lastFootstep;
 
         private void Awake()
         {
@@ -123,6 +130,29 @@ namespace Character
             var localVelocity = Quaternion.Inverse(transform.root.rotation) * velocity;
             xSpeed = Mathf.Clamp(Mathf.Lerp(xSpeed, localVelocity.x * 2, Time.deltaTime * animationLerp), -1, 1);
             zSpeed = Mathf.Clamp(Mathf.Lerp(zSpeed, localVelocity.z * 2, Time.deltaTime * animationLerp), -1, 1);
+
+            if (OnGround)
+            {
+                if (localVelocity.sqrMagnitude > 0.2 && !_sneaking)
+                {
+                    _lastFootstep -= Time.deltaTime;
+                    if (_lastFootstep <= 0f)
+                    {
+                        _lastFootstep = footstepFrequency;
+                        PlayFootstepRpc((byte)Random.Range(0, footstepSounds.Length));
+                    }
+                }
+            } else
+            {
+                _lastFootstep = 0f;
+            }
+        }
+
+        [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Owner)]
+        private void PlayFootstepRpc(byte clipId)
+        {
+            footstepAudio.clip = footstepSounds[clipId];
+            footstepAudio.Play();
         }
 
         private void UpdateRotation()

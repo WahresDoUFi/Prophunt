@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 using Weapons;
@@ -76,7 +77,6 @@ public class FirearmWeapon : NetworkBehaviour
 
     private void ProcessHit(Vector3 from, RaycastHit hit)
     {
-        Destroy(Instantiate(regularImpactPrefab, hit.point, Quaternion.identity), 1f);
         var direction = (hit.point - from).normalized;
         if (hit.collider.TryGetComponent(out Rigidbody rigidbody))
         {
@@ -86,8 +86,12 @@ public class FirearmWeapon : NetworkBehaviour
                 ProcessScenePropHitRpc(index, hit.point, direction * damage);
             } else //   must have been a player prop
             {
+                ShowPropHitEffectRpc(hit.point);
                 hit.collider.transform.root.GetComponent<IDamageable>().Damage(damage, hit.point, direction);
             }
+        } else
+        {
+            Destroy(Instantiate(regularImpactPrefab, hit.point, Quaternion.identity), 1f);
         }
     }
 
@@ -107,6 +111,13 @@ public class FirearmWeapon : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void ProcessScenePropHitRpc(int propIndex, Vector3 hitPoint, Vector3 force)
     {
+        Destroy(Instantiate(regularImpactPrefab, hitPoint, Quaternion.identity), 1f);
         SceneProps.GetProp(propIndex).AddForceAtPosition(force, hitPoint, ForceMode.Impulse);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void ShowPropHitEffectRpc(Vector3 position)
+    {
+        Destroy(Instantiate(playerImpactPrefab, position, Quaternion.identity));
     }
 }

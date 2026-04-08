@@ -14,7 +14,8 @@ namespace UI
 
         private void Update()
         {
-            propUI.SetActive(NetworkManager.Singleton.IsConnectedClient && 
+            propUI.SetActive(NetworkManager.Singleton != null &&
+                NetworkManager.Singleton.IsConnectedClient && 
                 GameManager.Instance.State == GameManager.GameState.Running && 
                 GameManager.Instance.HunterClientId != NetworkManager.Singleton.LocalClientId);
             var playerProp = PropController.AliveProps.FirstOrDefault(prop => prop.IsOwner);

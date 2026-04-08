@@ -137,6 +137,9 @@ public class GameManager : NetworkBehaviour
         }
 
         _gameState.Value = GameState.Running;
+
+        if (_hunterSpawnDelay.Value > 0) return;
+        SpawnHunter();
     }
 
     private void SpawnHunter()
