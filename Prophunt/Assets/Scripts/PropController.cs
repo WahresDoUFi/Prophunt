@@ -23,6 +23,11 @@ public class PropController : NetworkBehaviour, IDamageable
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private float healthMultiplier;
 
+    [Header("Footsteps")]
+    [SerializeField] private AudioSource footstepAudio;
+    [SerializeField] private float footstepFrequency;
+    [SerializeField] private AudioClip[] footstepSounds;
+
     public float MaxHealth => _maxHealth;
     public float Health => _health.Value;
     public byte MaxRerolls { set => _maxRerolls.Value = value; }
@@ -30,10 +35,12 @@ public class PropController : NetworkBehaviour, IDamageable
     private BoxCollider _boxCollider;
     private GameObject _propObject;
     private bool _jumping;
+    private bool _sneaking;
     private Rigidbody _rigidbody;
     private Vector3 _moveDir;
     private bool _onGround;
     private float _maxHealth;
+    private float _lastFootstep;
 
     private float xRot, yRot;
 
@@ -109,6 +116,16 @@ public class PropController : NetworkBehaviour, IDamageable
 
         _position.Value = _rigidbody.position;
         _rotation.Value = _rigidbody.rotation;
+
+        if (!_sneaking && _onGround && _moveDir.sqrMagnitude > 1)
+        {
+            _lastFootstep -= Time.fixedDeltaTime;
+            if (_lastFootstep < 0)
+            {
+                _lastFootstep += footstepFrequency;
+                PlayFootstepRpc(Random.Range(0, footstepSounds.Length));
+            }
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -127,10 +144,13 @@ public class PropController : NetworkBehaviour, IDamageable
     {
         if (_rigidbody == null) return;
         var input = InputManager.GetPlayerMovement();
+        _sneaking = InputManager.IsSneaking();
         _moveDir = _rigidbody.transform.forward * input.y;
         _moveDir += _rigidbody.transform.right * input.x;
         _moveDir.Normalize();
         _moveDir *= speed;
+        if (_sneaking)
+            _moveDir *= 0.5f;
         _jumping |= InputManager.JumpTriggered() && _onGround;
         if (_jumping)
             _moveDir.y = jumpForce;
@@ -180,6 +200,13 @@ public class PropController : NetworkBehaviour, IDamageable
     void JumpSoundRpc()
     {
         jumpAudio.Play();
+    }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Owner)]
+    void PlayFootstepRpc(int clipId)
+    {
+        footstepAudio.clip = footstepSounds[clipId];
+        footstepAudio.Play();
     }
 
     void PropUpdated()
