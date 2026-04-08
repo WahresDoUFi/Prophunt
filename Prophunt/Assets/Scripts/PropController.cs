@@ -22,6 +22,7 @@ public class PropController : NetworkBehaviour, IDamageable
     [SerializeField] private float maxSlope;
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private float healthMultiplier;
+    [SerializeField] private string outlineLayer;
 
     [Header("Footsteps")]
     [SerializeField] private AudioSource footstepAudio;
@@ -237,6 +238,9 @@ public class PropController : NetworkBehaviour, IDamageable
             Destroy(_propObject);
         }
         _propObject = Instantiate(PropProvider.GetPropById(_propIndex.Value), spawnPosition, spawnRotation);
+        if (GameManager.Instance.HunterClientId != NetworkManager.Singleton.LocalClientId &&
+            !IsOwner)
+            _propObject.layer = LayerMask.NameToLayer(outlineLayer);
         _propObject.transform.SetParent(propParent, true);
 
         _rigidbody = _propObject.GetComponent<Rigidbody>();
