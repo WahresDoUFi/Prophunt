@@ -28,6 +28,10 @@ public class PropController : NetworkBehaviour, IDamageable
     [SerializeField] private float footstepFrequency;
     [SerializeField] private AudioClip[] footstepSounds;
 
+    [Header("Taunt")]
+    [SerializeField] private AudioSource tauntAudio;
+    [SerializeField] private AudioClip[] tauntSounds;
+
     public float MaxHealth => _maxHealth;
     public float Health => _health.Value;
     public byte MaxRerolls { set => _maxRerolls.Value = value; }
@@ -194,6 +198,18 @@ public class PropController : NetworkBehaviour, IDamageable
         if (_rigidbody == null) return;
         var targetPosition = _rigidbody.transform.TransformPoint(_rigidbody.centerOfMass);
         cameraTarget.transform.position = Vector3.Lerp(cameraTarget.transform.position, targetPosition, Time.fixedDeltaTime * 10f);
+    }
+
+    public void Taunt()
+    {
+        PlayTauntRpc(Random.Range(0, tauntSounds.Length));
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void PlayTauntRpc(int clipId)
+    {
+        tauntAudio.clip = tauntSounds[clipId];
+        tauntAudio.Play();
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Owner)]

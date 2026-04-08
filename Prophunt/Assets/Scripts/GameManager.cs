@@ -71,7 +71,10 @@ public class GameManager : NetworkBehaviour
             if (_nextTaunt.Value <= 0f)
             {
                 _nextTaunt.Value += _tauntFrequency;
-                //  call taunt on props
+                foreach (var prop in PropController.AliveProps)
+                {
+                    prop.Taunt();
+                }
             }
 
             if (_remainingTime.Value <= 0f)

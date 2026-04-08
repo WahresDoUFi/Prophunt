@@ -45,7 +45,7 @@ public class FirearmWeapon : NetworkBehaviour
 
     public void Reload()
     {
-        if (_clip.Value < clipSize && !IsBusy)
+        if (_clip.Value < clipSize && !_reloading)
         {
             _reloading = true;
             _actionTime = reloadTime;
