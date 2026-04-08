@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class HunterController : NetworkBehaviour
 {
-    private static HunterController instance;
+    public static HunterController Instance;
 
     [Header("References")]
     [SerializeField]
@@ -20,8 +20,10 @@ public class HunterController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        instance = this;
+        Instance = this;
         characterController.SetVisible(!IsOwner);
+        if (IsOwner)
+            firstPersonCamera.Priority = 4;
     }
 
     private void Update()
@@ -39,5 +41,10 @@ public class HunterController : NetworkBehaviour
             if (InputManager.ReloadTriggered())
                 weaponController.Reload();
         }
+    }
+
+    public int GetAmmo(out int maxAmmo)
+    {
+        return weaponController.GetAmmo(out maxAmmo);
     }
 }

@@ -28,6 +28,7 @@ namespace Networking
 
         private IEnumerator Start()
         {
+            CursorManager.RequestCursor();
             InitializeCallbacks();
             SetButtonsEnabled(false);
             var serviceTask = UnityServices.InitializeAsync();
@@ -132,12 +133,15 @@ namespace Networking
         {
             SetButtonsEnabled(true);
             lobbyUI.SetActive(true);
+            CursorManager.RequestCursor();
         }
 
         private void OnConnect(ulong clientId)
         {
+            if (clientId != NetworkManager.Singleton.LocalClientId) return;
             SetButtonsEnabled(false);
             lobbyUI.SetActive(false);
+            CursorManager.ReturnCursor();
         }
     }
 }

@@ -19,31 +19,33 @@ public class FirearmWeapon : NetworkBehaviour
     [SerializeField] private LayerMask hitLayerMask;
 
     private bool IsBusy => _actionTime > 0;
-    private bool HasAmmo => _clip > 0;
+    private bool HasAmmo => _clip.Value > 0;
 
-    private int _clip;
+    private readonly NetworkVariable<int> _clip = new(writePerm: NetworkVariableWritePermission.Owner);
     private bool _reloading;
     private float _actionTime;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        _clip = clipSize;
+        if (IsOwner)
+            _clip.Value = clipSize;
     }
 
     private void Update()
     {
+        if (!IsOwner) return;
         _actionTime -= Time.deltaTime;
         if (IsBusy) return;
 
         if (_reloading)
-            _clip = clipSize;
+            _clip.Value = clipSize;
 
         _reloading = false;
     }
 
     public void Reload()
     {
-        if (_clip < clipSize && !IsBusy)
+        if (_clip.Value < clipSize && !IsBusy)
         {
             _reloading = true;
             _actionTime = reloadTime;
@@ -58,12 +60,18 @@ public class FirearmWeapon : NetworkBehaviour
 
         ShootSoundRpc();
         _actionTime = 1f / (fireRate / 60f);
-        _clip--;
+        _clip.Value--;
 
         if (Physics.Raycast(origin, direction, out RaycastHit hit, range, hitLayerMask))
         {
             ProcessHit(origin, hit);
         }
+    }
+
+    public int GetAmmo(out int maxAmmo)
+    {
+        maxAmmo = clipSize;
+        return _clip.Value;
     }
 
     private void ProcessHit(Vector3 from, RaycastHit hit)
@@ -78,7 +86,7 @@ public class FirearmWeapon : NetworkBehaviour
                 ProcessScenePropHitRpc(index, hit.point, direction * damage);
             } else //   must have been a player prop
             {
-                hit.collider.GetComponent<IDamageable>().Damage(damage, hit.point, direction);
+                hit.collider.transform.root.GetComponent<IDamageable>().Damage(damage, hit.point, direction);
             }
         }
     }

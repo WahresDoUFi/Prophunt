@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
+using Weapons;
 
-public class PropController : NetworkBehaviour
+public class PropController : NetworkBehaviour, IDamageable
 {
     public static int GetPropCount => AliveProps.Count;
-    private static List<PropController> AliveProps = new();
+    public static List<PropController> AliveProps = new();
 
     [Header("References")]
     [SerializeField] private Transform propParent;
@@ -21,6 +22,8 @@ public class PropController : NetworkBehaviour
     [SerializeField] private float maxSlope;
     [SerializeField] private float groundCheckDistance;
 
+    public byte MaxRerolls { set => _maxRerolls.Value = value; }
+
     private BoxCollider _boxCollider;
     private GameObject _propObject;
     private bool _jumping;
@@ -30,14 +33,40 @@ public class PropController : NetworkBehaviour
 
     private float xRot, yRot;
 
-    private readonly NetworkVariable<Vector3> _position = new(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<Quaternion> _rotation = new(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<Vector3> _position = new(writePerm: NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<Quaternion> _rotation = new(writePerm: NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<int> _propIndex = new(-1);
+    private readonly NetworkVariable<byte> _maxRerolls = new();
+    private readonly NetworkVariable<float> _health = new(writePerm: NetworkVariableWritePermission.Owner);
 
     private void Start()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        AliveProps.Add(this);
+        _propIndex.OnValueChanged += (_, _) => PropUpdated();
+        PropUpdated();
+        if (IsOwner)
+        {
+            RerollPropRpc();
+            thirdPersonCamera.GetComponent<CinemachineCamera>().Priority = 3;
+        }
+        else
+        {
+            _position.OnValueChanged += PositionUpdated;
+            _rotation.OnValueChanged += RotationUpdated;
+            PositionUpdated(_position.Value, _position.Value);
+            RotationUpdated(_rotation.Value, _rotation.Value);
+        }
+
+        if (IsHost)
+        {
+            _health.OnValueChanged += HealthChanged;
+        }
     }
 
     private void Update()
@@ -78,28 +107,10 @@ public class PropController : NetworkBehaviour
         _rotation.Value = _rigidbody.rotation;
     }
 
-    public override void OnNetworkSpawn()
-    {
-        AliveProps.Add(this);
-        _propIndex.OnValueChanged += (_, _) => PropUpdated();
-        PropUpdated();
-        if (IsOwner)
-        {
-            RerollPropRpc();
-            thirdPersonCamera.GetComponent<CinemachineCamera>().Priority = 2;
-        }
-        else
-        {
-            _position.OnValueChanged += PositionUpdated;
-            _rotation.OnValueChanged += RotationUpdated;
-            PositionUpdated(_position.Value, _position.Value);
-            RotationUpdated(_rotation.Value, _rotation.Value);
-        }
-    }
-
     public override void OnNetworkDespawn()
     {
         AliveProps.Remove(this);
+        GameManager.Instance.PropDied();
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
@@ -208,5 +219,23 @@ public class PropController : NetworkBehaviour
         if (_rigidbody == null) return;
         _rigidbody.rotation = oldRotation;
         _rigidbody.MoveRotation(newRotation);
+    }
+
+    private void HealthChanged(float previous, float current)
+    {
+        if (current <= 0)
+            NetworkObject.Despawn();
+    }
+
+    public void Damage(float damage, Vector3 point, Vector3 direction)
+    {
+        TakeDamageRpc(damage, point, direction);
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void TakeDamageRpc(float damage, Vector3 point, Vector3 direction)
+    {
+        _health.Value -= damage;
+        _rigidbody.AddForceAtPosition(point, direction * damage);
     }
 }
