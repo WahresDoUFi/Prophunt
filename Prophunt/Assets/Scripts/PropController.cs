@@ -21,7 +21,10 @@ public class PropController : NetworkBehaviour, IDamageable
     [SerializeField] private float jumpForce;
     [SerializeField] private float maxSlope;
     [SerializeField] private float groundCheckDistance;
+    [SerializeField] private float healthMultiplier;
 
+    public float MaxHealth => _maxHealth;
+    public float Health => _health.Value;
     public byte MaxRerolls { set => _maxRerolls.Value = value; }
 
     private BoxCollider _boxCollider;
@@ -30,6 +33,7 @@ public class PropController : NetworkBehaviour, IDamageable
     private Rigidbody _rigidbody;
     private Vector3 _moveDir;
     private bool _onGround;
+    private float _maxHealth;
 
     private float xRot, yRot;
 
@@ -202,8 +206,17 @@ public class PropController : NetworkBehaviour, IDamageable
         {
             meshCollider.enabled = false;
         }
-        thirdPersonCamera.CameraDistance = _boxCollider.bounds.size.magnitude * 2f;
+
+        var propSize = _boxCollider.bounds.size.magnitude;
+        thirdPersonCamera.CameraDistance = propSize * 2f;
         thirdPersonCamera.ShoulderOffset = new Vector3(0f, thirdPersonCamera.CameraDistance / 3f, 0f);
+
+        if (IsOwner)
+        {
+            var healthPercentage = Health > 0 ? Health / MaxHealth : 1f;
+            _maxHealth = propSize * healthMultiplier;
+            _health.Value = MaxHealth * healthPercentage;
+        }
     }
 
     private void PositionUpdated(Vector3 oldPosition, Vector3 newPosition)
